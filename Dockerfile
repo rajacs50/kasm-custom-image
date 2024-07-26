@@ -8,6 +8,8 @@ WORKDIR $HOME
 
 ######### Customize Container Here ###########
 
+# Obsidian Package is AMD, so this file can only be used to create images that would run on that arch. For other arch, modify the file accordingly.
+
 # Install VSCode
 RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg \
     && install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg \
