@@ -15,8 +15,9 @@ RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
     && apt-get update \
     && apt-get install -y apt-transport-https \
     && apt-get install -y code \
-    && sed -i "s|Exec=/usr/share/code/code %F|Exec=/usr/share/code/code --no-sandbox|g" /usr/share/applications/code.desktop \
+    # && sed -i "s|Exec=/usr/share/code/code %F|Exec=/usr/share/code/code --no-sandbox|g" /usr/share/applications/code.desktop \
     && cp /usr/share/applications/code.desktop $HOME/Desktop/ \
+    && sed -i "s|Exec=/usr/share/code/code %F|Exec=/usr/share/code/code --no-sandbox|g" $HOME/Desktop/code.desktop \
     && chmod +x $HOME/Desktop/code.desktop \
     && chown 1000:1000 $HOME/Desktop/code.desktop \
     && rm -f packages.microsoft.gpg
@@ -66,11 +67,31 @@ RUN apt-get update \
     && apt-get install -y software-properties-common \
     && add-apt-repository ppa:deadsnakes/ppa \
     && apt-get update \
-    && apt-get install -y python3.12 python3.12-venv python3.12-dev 
+    && apt-get install -y python3.12 python3.12-venv python3.12-dev
+
+# Install Maltego-TRX
+ENV VIRTUAL_ENV="$HOME/maltego/venv"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN apt-get update \
+    && mkdir -p $HOME/maltego \
+    && apt install python3.12-venv \
+    && python3.12 -m venv $VIRTUAL_ENV \
+    && . $VIRTUAL_ENV/bin/activate \
+    && pip install --upgrade pip \
+    && pip install maltego-trx
 
 # Install OpenVPN
 RUN apt-get update && \
     apt-get install -y openvpn
+
+# Install Obsidian
+RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.6.7/obsidian_1.6.7_amd64.deb \
+    && apt-get install -y ./obsidian_1.6.7_amd64.deb \
+    && cp /usr/share/applications/obsidian.desktop $HOME/Desktop/ \
+    && sed -i "s|Exec=/opt/Obsidian/obsidian %U|Exec=/usr/bin/obsidian --no-sandbox|g" $HOME/Desktop/obsidian.desktop \
+    && chmod +x $HOME/Desktop/obsidian.desktop \
+    && rm obsidian_1.6.7_amd64.deb
 
 # Copy the NordVPN OpenVPN connection profiles
 # RUN cd /etc/openvpn && \
@@ -78,6 +99,12 @@ RUN apt-get update && \
 #     unzip ovpn.zip && \
 #     rm ovpn.zip
 
+# Install Maltego
+
+RUN apt-get update \
+    && wget https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.7.0.deb \
+    && apt-get install -y ./Maltego.v4.7.0.deb \
+    && rm Maltego.v4.7.0.deb
 
 ######### End Customizations ###########
 
