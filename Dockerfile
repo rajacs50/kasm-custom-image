@@ -95,18 +95,21 @@ RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.6.
     && chmod +x $HOME/Desktop/obsidian.desktop \
     && rm obsidian_1.6.7_amd64.deb
 
-# Copy the NordVPN OpenVPN connection profiles
-# RUN cd /etc/openvpn && \
-#     wget https://downloads.nordcdn.com/configs/archives/servers/ovpn.zip && \
-#     unzip ovpn.zip && \
-#     rm ovpn.zip
+# Copy the qTDS Files
+RUN mkdir -p $HOME/maltego/qtds
+COPY qtds.zip $HOME/maltego/qtds
+RUN apt-get update && apt-get install -y unzip \
+    && unzip $HOME/maltego/qtds/qtds.zip -d $HOME/maltego/qtds/ \
+    && rm $HOME/maltego/qtds/qtds.zip
 
 # Install Maltego
-
 RUN apt-get update \
     && wget https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.7.0.deb \
     && apt-get install -y ./Maltego.v4.7.0.deb \
-    && rm Maltego.v4.7.0.deb
+    && rm Maltego.v4.7.0.deb \
+    && cp /usr/share/applications/maltego.desktop $HOME/Desktop/ \
+    && chmod +x $HOME/Desktop/maltego.desktop \
+    && chown 1000:1000 $HOME/Desktop/maltego.desktop
 
 ######### End Customizations ###########
 
