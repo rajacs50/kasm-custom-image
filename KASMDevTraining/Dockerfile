@@ -1,4 +1,4 @@
-FROM kasmweb/core-ubuntu-focal:1.15.0
+FROM kasmweb/core-ubuntu-focal:1.16.1
 USER root
 
 ENV HOME /home/kasm-default-profile
@@ -37,7 +37,10 @@ RUN apt-get update \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
-    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
+    && groupadd -f docker \
+    && usermod -aG docker kasm-user \
+    && newgrp docker
 
 # Install Firefox
 RUN install -d -m 0755 /etc/apt/keyrings \
@@ -57,7 +60,7 @@ RUN install -d -m 0755 /etc/apt/keyrings \
 # Install JDK 17
 RUN apt-get update \
     && apt-get install -y wget \
-    && wget -O /tmp/openjdk-17_linux-x64_bin.tar.gz https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
+    && wget -O /tmp/openjdk-17_linux-x64_bin.tar.gz https://download.oracle.com/java/17/archive/jdk-17.0.12_linux-x64_bin.tar.gz \
     && mkdir -p /usr/local/java/jdk-17 \
     && tar -xzf /tmp/openjdk-17_linux-x64_bin.tar.gz -C /usr/local/java/jdk-17 --strip-components=1 \
     && update-alternatives --install /usr/bin/java java /usr/local/java/jdk-17/bin/java 1 \
@@ -88,12 +91,12 @@ RUN apt-get update && \
     apt-get install -y openvpn
 
 # Install Obsidian
-RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.6.7/obsidian_1.6.7_amd64.deb \
-    && apt-get install -y ./obsidian_1.6.7_amd64.deb \
+RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.4/obsidian_1.8.4_amd64.deb \
+    && apt-get install -y ./obsidian_1.8.4_amd64.deb \
     && cp /usr/share/applications/obsidian.desktop $HOME/Desktop/ \
     && sed -i "s|Exec=/opt/Obsidian/obsidian %U|Exec=/usr/bin/obsidian --no-sandbox|g" $HOME/Desktop/obsidian.desktop \
     && chmod +x $HOME/Desktop/obsidian.desktop \
-    && rm obsidian_1.6.7_amd64.deb
+    && rm obsidian_1.8.4_amd64.deb
 
 # Copy the qTDS Files
 RUN mkdir -p $HOME/maltego/qtds
@@ -104,12 +107,19 @@ RUN apt-get update && apt-get install -y unzip \
 
 # Install Maltego
 RUN apt-get update \
-    && wget https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.7.0.deb \
-    && apt-get install -y ./Maltego.v4.7.0.deb \
-    && rm Maltego.v4.7.0.deb \
+    && wget https://downloads.maltego.com/maltego-v4/linux/Maltego.v4.9.1.deb \
+    && apt-get install -y ./Maltego.v4.9.1.deb \
+    && rm Maltego.v4.9.1.deb \
     && cp /usr/share/applications/maltego.desktop $HOME/Desktop/ \
     && chmod +x $HOME/Desktop/maltego.desktop \
     && chown 1000:1000 $HOME/Desktop/maltego.desktop
+
+# Custom Desktop
+COPY screensaver.png /usr/share/backgrounds/bg_default.png
+
+# Sergio's Customizations
+RUN mkdir -p $HOME/maltego/trx_and_db
+COPY trx_and_db $HOME/maltego/trx_and_db
 
 ######### End Customizations ###########
 

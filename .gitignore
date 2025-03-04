@@ -1,2 +1,12 @@
 *.zip
 *.DS_Store
+*.mtgl
+*.mtglx
+*.mtglx.db
+*.mtglx.db-shm
+*.mtglx.db-wal
+*.mtglx.db-journal
+*.mtglx.db-journal-shm
+*.mtglx.db-journal-wal
+
+trx_and_db/

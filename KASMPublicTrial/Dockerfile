@@ -9,18 +9,15 @@ WORKDIR $HOME
 ######### Customize Container Here ###########
 
 # Install VSCode
-RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg \
-    && install -D -o root -g root -m 644 packages.microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg \
-    && sh -c 'echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/keyrings/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main"' | tee /etc/apt/sources.list.d/vscode.list \
+RUN wget -qO - https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/raw/master/pub.gpg | gpg --dearmor > packages.vscodium.gpg \
+    && install -D -o root -g root -m 644 packages.vscodium.gpg /etc/apt/keyrings/packages.vscodium.gpg \
+    && echo 'deb [ signed-by=/etc/apt/keyrings/packages.vscodium.gpg ] https://download.vscodium.com/debs vscodium main' | tee /etc/apt/sources.list.d/vscodium.list \
     && apt-get update \
-    && apt-get install -y apt-transport-https \
-    && apt-get install -y code \
-    # && sed -i "s|Exec=/usr/share/code/code %F|Exec=/usr/share/code/code --no-sandbox|g" /usr/share/applications/code.desktop \
-    && cp /usr/share/applications/code.desktop $HOME/Desktop/ \
-    && sed -i "s|Exec=/usr/share/code/code %F|Exec=/usr/share/code/code --no-sandbox|g" $HOME/Desktop/code.desktop \
-    && chmod +x $HOME/Desktop/code.desktop \
-    && chown 1000:1000 $HOME/Desktop/code.desktop \
-    && rm -f packages.microsoft.gpg
+    && apt-get install -y codium \
+    && cp /usr/share/applications/codium.desktop $HOME/Desktop/ \
+    && sed -i "s|Exec=/usr/share/codium/codium %F|Exec=/usr/share/codium/codium --no-sandbox|g" $HOME/Desktop/codium.desktop \
+    && chmod +x $HOME/Desktop/codium.desktop \
+    && chown 1000:1000 $HOME/Desktop/codium.desktop
 
 # Install Firefox
 RUN install -d -m 0755 /etc/apt/keyrings \
@@ -40,7 +37,7 @@ RUN install -d -m 0755 /etc/apt/keyrings \
 # Install JDK 17
 RUN apt-get update \
     && apt-get install -y wget \
-    && wget -O /tmp/openjdk-17_linux-x64_bin.tar.gz https://download.oracle.com/java/17/archive/jdk-17.0.12_linux-x64_bin.tar.gz \
+    && wget -O /tmp/openjdk-17_linux-x64_bin.tar.gz https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz \
     && mkdir -p /usr/local/java/jdk-17 \
     && tar -xzf /tmp/openjdk-17_linux-x64_bin.tar.gz -C /usr/local/java/jdk-17 --strip-components=1 \
     && update-alternatives --install /usr/bin/java java /usr/local/java/jdk-17/bin/java 1 \
@@ -55,10 +52,6 @@ RUN apt-get update \
     && cp /usr/share/applications/maltego.desktop $HOME/Desktop/ \
     && chmod +x $HOME/Desktop/maltego.desktop \
     && chown 1000:1000 $HOME/Desktop/maltego.desktop
-
-RUN mkdir -p $HOME/maltego/graphs/cti-graphs $HOME/maltego/graphs/gov-graphs
-COPY cti-graphs $HOME/maltego/graphs/cti-graphs
-COPY gov-graphs $HOME/maltego/graphs/gov-graphs
 
 ######### End Customizations ###########
 
