@@ -37,11 +37,28 @@ RUN apt-get update \
     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
-    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin \
-    && groupadd -f docker \
-    && usermod -aG docker kasm-user \
-    && newgrp docker
+    && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# RUN apt-get update && \
+#     apt-get install -y \
+#     ca-certificates \
+#     curl \
+#     gnupg \
+#     lsb-release && \
+#     mkdir -p /etc/apt/keyrings && \
+#     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
+#     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+#     apt-get update && \
+#     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin && \
+#     usermod -aG docker kasm-user && \
+#     mkdir -p /home/kasm-user/.docker && \
+#     chown -R kasm-user:kasm-user /home/kasm-user/.docker && \
+#     while [ ! -S /var/run/docker.sock ]; do sleep 1; done && \
+#     chmod g+rwx /var/run/docker.sock && \
+#     chown kasm-user:docker /var/run/docker.sock && \
+#     apt-get clean && \
+#     rm -rf /var/lib/apt/lists/*
+    
 # Install Firefox
 RUN install -d -m 0755 /etc/apt/keyrings \
     && wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | sudo tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null \
@@ -117,9 +134,12 @@ RUN apt-get update \
 # Custom Desktop
 COPY screensaver.png /usr/share/backgrounds/bg_default.png
 
-# Sergio's Customizations
+# Training DB
 RUN mkdir -p $HOME/maltego/trx_and_db
 COPY trx_and_db $HOME/maltego/trx_and_db
+
+# Set Docker host environment variable
+ENV DOCKER_HOST=unix:///var/run/docker.sock
 
 ######### End Customizations ###########
 
