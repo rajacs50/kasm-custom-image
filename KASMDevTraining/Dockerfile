@@ -38,26 +38,6 @@ RUN apt-get update \
     $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
     && apt-get update \
     && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-# RUN apt-get update && \
-#     apt-get install -y \
-#     ca-certificates \
-#     curl \
-#     gnupg \
-#     lsb-release && \
-#     mkdir -p /etc/apt/keyrings && \
-#     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg && \
-#     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
-#     apt-get update && \
-#     apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin && \
-#     usermod -aG docker kasm-user && \
-#     mkdir -p /home/kasm-user/.docker && \
-#     chown -R kasm-user:kasm-user /home/kasm-user/.docker && \
-#     while [ ! -S /var/run/docker.sock ]; do sleep 1; done && \
-#     chmod g+rwx /var/run/docker.sock && \
-#     chown kasm-user:docker /var/run/docker.sock && \
-#     apt-get clean && \
-#     rm -rf /var/lib/apt/lists/*
     
 # Install Firefox
 RUN install -d -m 0755 /etc/apt/keyrings \
@@ -108,12 +88,12 @@ RUN apt-get update && \
     apt-get install -y openvpn
 
 # Install Obsidian
-RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.4/obsidian_1.8.4_amd64.deb \
-    && apt-get install -y ./obsidian_1.8.4_amd64.deb \
+RUN wget https://github.com/obsidianmd/obsidian-releases/releases/download/v1.8.10/obsidian_1.8.10_amd64.deb \
+    && apt-get install -y ./obsidian_1.8.10_amd64.deb \
     && cp /usr/share/applications/obsidian.desktop $HOME/Desktop/ \
     && sed -i "s|Exec=/opt/Obsidian/obsidian %U|Exec=/usr/bin/obsidian --no-sandbox|g" $HOME/Desktop/obsidian.desktop \
     && chmod +x $HOME/Desktop/obsidian.desktop \
-    && rm obsidian_1.8.4_amd64.deb
+    && rm obsidian_1.8.10_amd64.deb
 
 # Copy the qTDS Files
 RUN mkdir -p $HOME/maltego/qtds
@@ -131,6 +111,53 @@ RUN apt-get update \
     && chmod +x $HOME/Desktop/maltego.desktop \
     && chown 1000:1000 $HOME/Desktop/maltego.desktop
 
+#Install Adminer
+RUN apt-get update \
+    && apt-get install -y adminer
+
+#Install MySQL Database 8.1.0
+# RUN apt-get update && apt-get install -y wget gnupg \
+#     && wget -O mysql-apt-config.deb https://dev.mysql.com/get/mysql-apt-config_0.8.27-1_all.deb \
+#     && dpkg -i mysql-apt-config.deb \
+#     && apt-key adv --keyserver keyserver.ubuntu.com --recv-keys B7B3B788A8D3785C \
+#     && apt-get update \
+#     && apt-get install -y mysql-server-8.1 \
+#     && mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'maltegotraining';" \
+#     && mkdir -p /etc/mysql/conf.d \
+#     && cp my.cnf /etc/mysql/conf.d/my.cnf
+
+# Install MySQL 8.1.0 and configure it
+# RUN apt-get update && \
+#     apt-get install -y wget gnupg && \
+#     # Add MySQL GPG key directly to the trusted keyring
+#     wget -qO /usr/share/keyrings/mysql-archive-keyring.gpg https://repo.mysql.com/RPM-GPG-KEY-mysql-2022 && \
+#     # Configure MySQL APT repository
+#     echo "deb [signed-by=/usr/share/keyrings/mysql-archive-keyring.gpg] http://repo.mysql.com/apt/ubuntu focal mysql-8.0" > /etc/apt/sources.list.d/mysql.list && \
+#     apt-get update && \
+#     # Install MySQL server
+#     DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server=8.1.0-1ubuntu20.04 && \
+#     # Configure MySQL
+#     echo "[mysqld]\nskip-host-cache\nskip-name-resolve\nbind-address=0.0.0.0" > /etc/mysql/mysql.conf.d/custom.cnf && \
+#     # Start MySQL service temporarily to configure root user
+#     service mysql start && \
+#     mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your_strong_password';" && \
+#     mysql -u root -e "FLUSH PRIVILEGES;" && \
+#     # Stop MySQL service after configuration
+#     service mysql stop && \
+#     # Clean up
+#     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+#Install MySQL Database 8.1.0
+# Install MySQL Database 8.1.0
+# RUN apt-get update && apt-get install -y wget gnupg mysql-server-8.0 \
+#     && mysql -u root -p ='' -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'maltegotraining';" \
+#     && mysql -u root --password='maltegotraining' -e "FLUSH PRIVILEGES;" \
+#     && mkdir -p /etc/mysql/conf.d \
+#     && cp my.cnf /etc/mysql/conf.d/my.cnf \
+#     && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+EXPOSE 3306
+
 # Custom Desktop
 COPY screensaver.png /usr/share/backgrounds/bg_default.png
 
@@ -138,10 +165,15 @@ COPY screensaver.png /usr/share/backgrounds/bg_default.png
 RUN mkdir -p $HOME/maltego/trx_and_db
 COPY trx_and_db $HOME/maltego/trx_and_db
 
+######### End Customizations ###########
+# Expose MySQL port
+EXPOSE 3306
+
+# Start MySQL on container startup
+CMD ["mysqld"]
+
 # Set Docker host environment variable
 ENV DOCKER_HOST=unix:///var/run/docker.sock
-
-######### End Customizations ###########
 
 RUN chown 1000:0 $HOME
 RUN $STARTUPDIR/set_user_permission.sh $HOME
